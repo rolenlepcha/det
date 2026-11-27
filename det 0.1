@@ -1,0 +1,909 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <meta name="theme-color" content="#F7F5F0" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+  <title>Daily Expense Tracker</title>
+  <style>
+    :root {
+      --bg: #F7F5F0;
+      --surface: #FFFFFF;
+      --surface-alt: #EFECE6;
+      --ink: #1C1917;
+      --ink-muted: #57534E;
+      --ink-subtle: #78716C;
+      --border: #E2DDD4;
+      --accent: #1F6E4A;
+      --accent-soft: #E6F2EC;
+      --accent-hover: #175438;
+      --warn: #B45309;
+      --warn-soft: #FEF3C7;
+      --danger: #B91C1C;
+      --danger-soft: #FEE2E2;
+      --radius: 14px;
+      --radius-sm: 9px;
+      --shadow: 0 2px 10px rgba(28, 25, 23, 0.05);
+      --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+    }
+
+    * {
+      box-sizing: border-box;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    body {
+      margin: 0;
+      padding: 0;
+      background: var(--bg);
+      color: var(--ink);
+      font-family: var(--font-sans);
+      line-height: 1.45;
+      padding-bottom: 48px;
+    }
+
+    .container {
+      max-width: 640px;
+      margin: 0 auto;
+      padding: 16px;
+    }
+
+    /* Header & Month Switcher */
+    header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 14px;
+    }
+
+    .brand h1 {
+      font-size: 1.2rem;
+      font-weight: 700;
+      margin: 0;
+      letter-spacing: -0.02em;
+    }
+
+    .brand p {
+      font-size: 0.78rem;
+      color: var(--ink-subtle);
+      margin: 1px 0 0;
+    }
+
+    .month-picker {
+      display: flex;
+      align-items: center;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      padding: 4px 6px;
+      box-shadow: var(--shadow);
+    }
+
+    .month-btn {
+      background: none;
+      border: none;
+      color: var(--ink);
+      font-size: 1rem;
+      font-weight: 600;
+      width: 30px;
+      height: 30px;
+      border-radius: 50%;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .month-btn:hover {
+      background: var(--surface-alt);
+    }
+
+    .month-input {
+      border: none;
+      background: transparent;
+      font-family: var(--font-sans);
+      font-size: 0.88rem;
+      font-weight: 600;
+      color: var(--ink);
+      padding: 0 4px;
+      cursor: pointer;
+    }
+
+    /* Navigation Tabs */
+    .tabs {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      background: var(--surface-alt);
+      padding: 4px;
+      border-radius: 12px;
+      margin-bottom: 16px;
+      border: 1px solid var(--border);
+    }
+
+    .tab-btn {
+      border: none;
+      background: transparent;
+      padding: 9px 8px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: var(--ink-muted);
+      border-radius: 9px;
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+
+    .tab-btn.active {
+      background: var(--surface);
+      color: var(--ink);
+      box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+    }
+
+    .view {
+      display: none;
+    }
+
+    .view.active {
+      display: block;
+    }
+
+    /* Cards */
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 16px;
+      margin-bottom: 14px;
+      box-shadow: var(--shadow);
+    }
+
+    .card-title {
+      font-size: 0.8rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--ink-subtle);
+      margin: 0 0 12px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    /* Hero Balance Card */
+    .hero-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 12px;
+      margin-bottom: 12px;
+    }
+
+    .hero-label {
+      font-size: 0.82rem;
+      color: var(--ink-muted);
+      font-weight: 600;
+    }
+
+    .hero-amount {
+      font-family: var(--font-mono);
+      font-size: 2rem;
+      font-weight: 700;
+      letter-spacing: -0.03em;
+      margin: 2px 0;
+      color: var(--accent);
+      font-variant-numeric: tabular-nums;
+    }
+
+    .hero-amount.warn {
+      color: var(--warn);
+    }
+
+    .hero-amount.danger {
+      color: var(--danger);
+    }
+
+    .status-pill {
+      font-size: 0.75rem;
+      font-weight: 700;
+      padding: 4px 10px;
+      border-radius: 999px;
+      background: var(--accent-soft);
+      color: var(--accent);
+      white-space: nowrap;
+    }
+
+    .status-pill.warn {
+      background: var(--warn-soft);
+      color: var(--warn);
+    }
+
+    .status-pill.danger {
+      background: var(--danger-soft);
+      color: var(--danger);
+    }
+
+    .progress-track {
+      height: 9px;
+      background: var(--surface-alt);
+      border-radius: 999px;
+      overflow: hidden;
+      margin-bottom: 14px;
+    }
+
+    .progress-fill {
+      height: 100%;
+      background: var(--accent);
+      border-radius: 999px;
+      transition: width 0.25s ease, background 0.25s ease;
+    }
+
+    .progress-fill.warn {
+      background: var(--warn);
+    }
+
+    .progress-fill.danger {
+      background: var(--danger);
+    }
+
+    .kpi-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 10px;
+    }
+
+    @media (min-width: 480px) {
+      .kpi-grid {
+        grid-template-columns: repeat(4, 1fr);
+      }
+    }
+
+    .kpi-box {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 9px 10px;
+    }
+
+    .kpi-box .k-label {
+      font-size: 0.72rem;
+      color: var(--ink-subtle);
+      display: block;
+      margin-bottom: 2px;
+    }
+
+    .kpi-box .k-val {
+      font-family: var(--font-mono);
+      font-size: 0.95rem;
+      font-weight: 700;
+      font-variant-numeric: tabular-nums;
+    }
+
+    /* Quick Entry Form */
+    .quick-row {
+      display: grid;
+      grid-template-columns: 120px 1fr;
+      gap: 10px;
+      margin-bottom: 10px;
+    }
+
+    .field-group label {
+      display: block;
+      font-size: 0.74rem;
+      font-weight: 600;
+      color: var(--ink-muted);
+      margin-bottom: 4px;
+    }
+
+    input[type="text"],
+    input[type="number"],
+    input[type="date"],
+    select {
+      width: 100%;
+      padding: 10px 12px;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      font-family: var(--font-sans);
+      font-size: 0.95rem;
+      color: var(--ink);
+      background: var(--surface);
+      outline: none;
+      transition: border-color 0.15s ease;
+    }
+
+    input[type="number"].amount-input {
+      font-family: var(--font-mono);
+      font-size: 1.15rem;
+      font-weight: 700;
+      font-variant-numeric: tabular-nums;
+    }
+
+    input:focus,
+    select:focus {
+      border-color: var(--accent);
+    }
+
+    .chips-wrap {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-bottom: 12px;
+    }
+
+    .chip {
+      border: 1px solid var(--border);
+      background: var(--bg);
+      color: var(--ink-muted);
+      font-size: 0.78rem;
+      font-weight: 600;
+      padding: 6px 10px;
+      border-radius: 999px;
+      cursor: pointer;
+      user-select: none;
+      transition: all 0.12s ease;
+    }
+
+    .chip.selected {
+      background: var(--ink);
+      color: #FFFFFF;
+      border-color: var(--ink);
+    }
+
+    .extra-toggle {
+      background: none;
+      border: none;
+      color: var(--ink-subtle);
+      font-size: 0.78rem;
+      font-weight: 600;
+      padding: 0;
+      cursor: pointer;
+      text-decoration: underline;
+    }
+
+    .extra-fields {
+      display: none;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+      margin-top: 10px;
+      padding-top: 10px;
+      border-top: 1px dashed var(--border);
+    }
+
+    .extra-fields.open {
+      display: grid;
+    }
+
+    @media (max-width: 460px) {
+      .extra-fields.open {
+        grid-template-columns: 1fr 1fr;
+      }
+    }
+
+    .btn-primary {
+      width: 100%;
+      padding: 12px;
+      border: none;
+      border-radius: var(--radius-sm);
+      background: var(--accent);
+      color: #FFFFFF;
+      font-size: 0.96rem;
+      font-weight: 700;
+      cursor: pointer;
+      margin-top: 6px;
+      transition: background 0.15s ease;
+    }
+
+    .btn-primary:hover {
+      background: var(--accent-hover);
+    }
+
+    .btn-secondary {
+      padding: 8px 12px;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      background: var(--surface);
+      color: var(--ink);
+      font-size: 0.82rem;
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    .btn-secondary:hover {
+      background: var(--surface-alt);
+    }
+
+    /* Expense List */
+    .expense-list {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+    }
+
+    .expense-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      padding: 10px 0;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .expense-item:last-child {
+      border-bottom: none;
+      padding-bottom: 0;
+    }
+
+    .exp-main {
+      min-width: 0;
+      flex: 1;
+    }
+
+    .exp-title {
+      font-size: 0.92rem;
+      font-weight: 600;
+      color: var(--ink);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .exp-meta {
+      font-size: 0.75rem;
+      color: var(--ink-subtle);
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      align-items: center;
+      margin-top: 2px;
+    }
+
+    .badge {
+      background: var(--surface-alt);
+      padding: 1px 7px;
+      border-radius: 6px;
+      font-weight: 600;
+      color: var(--ink-muted);
+    }
+
+    .badge.want {
+      background: var(--warn-soft);
+      color: var(--warn);
+    }
+
+    .exp-right {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .exp-amt {
+      font-family: var(--font-mono);
+      font-weight: 700;
+      font-size: 0.95rem;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .del-btn {
+      background: none;
+      border: none;
+      color: var(--ink-subtle);
+      font-size: 1.1rem;
+      cursor: pointer;
+      padding: 4px 6px;
+      border-radius: 6px;
+      line-height: 1;
+    }
+
+    .del-btn:hover {
+      background: var(--danger-soft);
+      color: var(--danger);
+    }
+
+    .empty-state {
+      text-align: center;
+      padding: 22px 12px;
+      color: var(--ink-subtle);
+      font-size: 0.88rem;
+    }
+
+    /* Category Breakdown */
+    .cat-row {
+      margin-bottom: 10px;
+    }
+
+    .cat-row:last-child {
+      margin-bottom: 0;
+    }
+
+    .cat-head {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.82rem;
+      font-weight: 600;
+      margin-bottom: 4px;
+    }
+
+    .cat-head span:last-child {
+      font-family: var(--font-mono);
+      font-variant-numeric: tabular-nums;
+    }
+
+    .cat-bar-bg {
+      height: 7px;
+      background: var(--surface-alt);
+      border-radius: 999px;
+      overflow: hidden;
+    }
+
+    .cat-bar-fill {
+      height: 100%;
+      background: var(--ink);
+      border-radius: 999px;
+    }
+
+    /* Budget Setup Table */
+    .budget-row {
+      display: grid;
+      grid-template-columns: 1fr 125px 32px;
+      gap: 8px;
+      align-items: center;
+      margin-bottom: 8px;
+    }
+
+    .budget-row input[type="number"] {
+      font-family: var(--font-mono);
+      text-align: right;
+      font-weight: 600;
+    }
+
+    .summary-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.88rem;
+    }
+
+    .summary-table td {
+      padding: 7px 0;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .summary-table tr:last-child td {
+      border-bottom: none;
+    }
+
+    .summary-table td:last-child {
+      text-align: right;
+      font-family: var(--font-mono);
+      font-weight: 700;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .summary-table tr.highlight td {
+      color: var(--accent);
+      font-weight: 700;
+      font-size: 0.96rem;
+      padding-top: 10px;
+    }
+
+    /* Toast */
+    .toast {
+      position: fixed;
+      bottom: 18px;
+      left: 50%;
+      transform: translateX(-50%) translateY(90px);
+      background: var(--ink);
+      color: #FFFFFF;
+      padding: 10px 16px;
+      border-radius: 999px;
+      font-size: 0.84rem;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.2);
+      transition: transform 0.22s ease;
+      z-index: 100;
+    }
+
+    .toast.show {
+      transform: translateX(-50%) translateY(0);
+    }
+
+    .toast button {
+      background: rgba(255,255,255,0.2);
+      border: none;
+      color: #FFFFFF;
+      font-weight: 700;
+      padding: 4px 10px;
+      border-radius: 999px;
+      cursor: pointer;
+      font-size: 0.78rem;
+    }
+
+    .backup-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .note-box {
+      background: var(--bg);
+      border-left: 3px solid var(--accent);
+      padding: 10px 12px;
+      border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+      font-size: 0.82rem;
+      color: var(--ink-muted);
+      margin-top: 12px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <div class="brand">
+        <h1>Daily Expense Tracker</h1>
+        <p>Personal monthly budget &amp; variable spending</p>
+      </div>
+      <div class="month-picker">
+        <button class="month-btn" id="prevMonthBtn" title="Previous month" aria-label="Previous month">&lsaquo;</button>
+        <input type="month" id="monthSelector" class="month-input" aria-label="Select month" />
+        <button class="month-btn" id="nextMonthBtn" title="Next month" aria-label="Next month">&rsaquo;</button>
+      </div>
+    </header>
+
+    <nav class="tabs" role="tablist">
+      <button class="tab-btn active" data-tab="overview">Log &amp; Overview</button>
+      <button class="tab-btn" data-tab="budget">Budget Setup</button>
+      <button class="tab-btn" data-tab="backup">Export &amp; Backup</button>
+    </nav>
+
+    <!-- TAB 1: LOG & OVERVIEW -->
+    <section id="view-overview" class="view active">
+      <!-- Monthly Snapshot -->
+      <div class="card">
+        <div class="hero-top">
+          <div>
+            <div class="hero-label">Money Left to Spend</div>
+            <div class="hero-amount" id="heroRemaining">&#8377;13,020</div>
+            <div style="font-size: 0.78rem; color: var(--ink-subtle);" id="heroSubtext">
+              of &#8377;13,020 usable budget &bull; Guide: &#8377;434/day
+            </div>
+          </div>
+          <span class="status-pill" id="statusPill">On Track</span>
+        </div>
+
+        <div class="progress-track">
+          <div class="progress-fill" id="progressFill" style="width: 0%;"></div>
+        </div>
+
+        <div class="kpi-grid">
+          <div class="kpi-box">
+            <span class="k-label">Usable Limit</span>
+            <span class="k-val" id="kpiUsable">&#8377;13,020</span>
+          </div>
+          <div class="kpi-box">
+            <span class="k-label">Spent So Far</span>
+            <span class="k-val" id="kpiSpent">&#8377;0</span>
+          </div>
+          <div class="kpi-box">
+            <span class="k-label">Daily Avg Spent</span>
+            <span class="k-val" id="kpiDailyAvg">&#8377;0</span>
+          </div>
+          <div class="kpi-box">
+            <span class="k-label">Left / Day</span>
+            <span class="k-val" id="kpiLeftPerDay">&#8377;434</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Hassle-Free Daily Expense Entry -->
+      <div class="card">
+        <div class="card-title">
+          <span>Add Daily Expense</span>
+          <button type="button" class="extra-toggle" id="toggleExtraBtn">+ Date / Need-Want</button>
+        </div>
+
+        <form id="expenseForm" autocomplete="off">
+          <div class="quick-row">
+            <div class="field-group">
+              <label for="expAmount">How much (&#8377;)</label>
+              <input type="number" id="expAmount" class="amount-input" inputmode="decimal" step="any" min="0.01" placeholder="0" required />
+            </div>
+            <div class="field-group">
+              <label for="expDesc">What was it for?</label>
+              <input type="text" id="expDesc" placeholder="e.g. Lunch, Tea, Groceries..." />
+            </div>
+          </div>
+
+          <div class="field-group">
+            <label>Category (tap one)</label>
+            <div class="chips-wrap" id="categoryChips"></div>
+          </div>
+
+          <div class="extra-fields" id="extraFields">
+            <div class="field-group">
+              <label for="expDate">Date</label>
+              <input type="date" id="expDate" />
+            </div>
+            <div class="field-group">
+              <label for="expType">Need / Want</label>
+              <select id="expType">
+                <option value="Need">Need</option>
+                <option value="Want">Want</option>
+              </select>
+            </div>
+            <div class="field-group">
+              <label for="expMethod">Payment</label>
+              <select id="expMethod">
+                <option value="UPI">UPI</option>
+                <option value="Cash">Cash</option>
+                <option value="Debit card">Debit card</option>
+                <option value="Credit card">Credit card</option>
+                <option value="Net banking">Net banking</option>
+                <option value="Other">Other</option>
+              </select>
+            </div>
+          </div>
+
+          <button type="submit" class="btn-primary">+ Add Expense</button>
+        </form>
+      </div>
+
+      <!-- Recent Expenses -->
+      <div class="card">
+        <div class="card-title">
+          <span id="listTitle">Expenses This Month</span>
+          <span id="listCount" style="font-family: var(--font-mono);">0 items</span>
+        </div>
+        <ul class="expense-list" id="expenseList"></ul>
+      </div>
+
+      <!-- Category & Need/Want Breakdown -->
+      <div class="card">
+        <div class="card-title">
+          <span>Spending Breakdown</span>
+          <span id="needWantSummary" style="font-family: var(--font-mono); font-size: 0.75rem;">Need &#8377;0 &bull; Want &#8377;0</span>
+        </div>
+        <div id="categoryBreakdown"></div>
+      </div>
+    </section>
+
+    <!-- TAB 2: BUDGET SETUP -->
+    <section id="view-budget" class="view">
+      <div class="card">
+        <div class="card-title">
+          <span>Monthly Income</span>
+          <span style="font-size: 0.72rem; font-weight: 500; text-transform: none;">Auto-saves as you edit</span>
+        </div>
+        <div class="field-group">
+          <label for="salaryInput">Monthly Salary (&#8377;)</label>
+          <input type="number" id="salaryInput" class="amount-input" inputmode="decimal" min="0" step="100" />
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">
+          <span>Fixed Deductions &amp; Commitments</span>
+          <button type="button" class="btn-secondary" id="addDeductionBtn">+ Add</button>
+        </div>
+        <div id="deductionsContainer"></div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">
+          <span>Savings &amp; Investments</span>
+          <button type="button" class="btn-secondary" id="addSavingBtn">+ Add</button>
+        </div>
+        <div id="savingsContainer"></div>
+      </div>
+
+      <div class="card">
+        <div class="card-title"><span>Calculated Monthly Position</span></div>
+        <table class="summary-table">
+          <tr>
+            <td>Monthly salary</td>
+            <td id="sumSalary">&#8377;51,000</td>
+          </tr>
+          <tr>
+            <td>Total deductions / commitments</td>
+            <td id="sumDeductions">&#8377;26,700</td>
+          </tr>
+          <tr>
+            <td>Total savings &amp; investments</td>
+            <td id="sumSavings">&#8377;11,280</td>
+          </tr>
+          <tr>
+            <td>Total outflow (deductions + savings)</td>
+            <td id="sumOutflow">&#8377;37,980</td>
+          </tr>
+          <tr class="highlight">
+            <td>Usable money for daily spending</td>
+            <td id="sumUsable">&#8377;13,020</td>
+          </tr>
+          <tr>
+            <td id="sumDailyLabel">Daily guide</td>
+            <td id="sumDailyActual">&#8377;434</td>
+          </tr>
+        </table>
+
+        <div class="note-box">
+          <strong>Tip from your sheet:</strong> Only log expenses paid out of your usable money (&#8377;13,020). Since Fuel (&#8377;3,000) is already counted in fixed deductions above, don't log it again unless you exceed that limit.
+        </div>
+
+        <div style="margin-top: 14px; text-align: right;">
+          <button type="button" class="btn-secondary" id="resetBudgetBtn">Reset to Default Sheet Figures</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- TAB 3: EXPORT & BACKUP -->
+    <section id="view-backup" class="view">
+      <div class="card">
+        <div class="card-title"><span>Download &amp; Backup Data</span></div>
+        <p style="font-size: 0.86rem; color: var(--ink-muted); margin-top: 0;">
+          All entries are saved automatically inside your browser on this device. Export a CSV anytime to open in Excel, or download a JSON backup before switching devices.
+        </p>
+        <div class="backup-actions">
+          <button type="button" class="btn-secondary" id="exportCsvBtn">Export CSV (Excel-ready)</button>
+          <button type="button" class="btn-secondary" id="exportJsonBtn">Download JSON Backup</button>
+          <button type="button" class="btn-secondary" id="importJsonBtn">Restore JSON Backup</button>
+          <input type="file" id="importFileInput" accept=".json" style="display: none;" />
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title"><span>Danger Zone</span></div>
+        <p style="font-size: 0.84rem; color: var(--ink-muted); margin-top: 0;">
+          Clear all logged expenses while keeping your salary and monthly commitment settings intact.
+        </p>
+        <button type="button" class="btn-secondary" style="color: var(--danger); border-color: var(--danger-soft);" id="clearExpensesBtn">
+          Clear All Logged Expenses
+        </button>
+      </div>
+    </section>
+  </div>
+
+  <!-- Undo Toast -->
+  <div class="toast" id="toast">
+    <span id="toastMsg">Expense deleted</span>
+    <button type="button" id="undoBtn">Undo</button>
+  </div>
+
+  <script>
+    const STORAGE_KEY = 'personal_daily_expense_tracker_v1';
+
+    const CATEGORIES = [
+      'Food',
+      'Tea/Coffee',
+      'Groceries',
+      'Travel',
+      'Shopping',
+      'Entertainment',
+      'Mobile/Internet',
+      'Medical',
+      'Household',
+      'Other'
+    ];
+
+    const DEFAULT_BUDGET = {
+      salary: 51000,
+      deductions: [
+        { id: 'd1', name: 'Tithe', amount: 5000 },
+        { id: 'd2', name: 'Rent', amount: 5000 },
+        { id: 'd3', name: 'Bike EMI', amount: 8700 },
+        { id: 'd4', name: 'Ghumauri', amount: 5000 },
+        { id: 'd5', name: 'Credit card payment', amount: 0 },
+        { id: 'd6', name: 'Fuel', amount: 3000 }
+      ],
+      savings: [
+        { id: 's1', name: 'PLI', amount: 4280 },
+        { id: 's2', name: 'RD', amount: 7000 }
+      ]
+    };
+
+    function getLocalDateStr(dateObj = new Date()) {
+      const y = dateObj.getFullYear();
+      const m = String(dateObj.getMonth() + 1).padStart(2, '0');
+      const d = String(dateObj.getDate()).padStart(2, '0');
